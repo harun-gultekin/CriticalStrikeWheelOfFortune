@@ -43,7 +43,8 @@ public class GameManager : MonoBehaviour
     // OTOMATİK BULUNACAK BUTONLAR
     [Header("Auto-Referenced Buttons (Read Only)")]
     [SerializeField] private Button btnContinue;
-    [SerializeField] private Button btnExit;
+    [SerializeField] private Button btnExit; // Win screen exit button
+    [SerializeField] private Button btnExitMain; // Main game screen exit button (always visible)
     [SerializeField] private Button btnRevive;
     [SerializeField] private Button btnGiveUp;
     [SerializeField] private Button btnMainMenu; // Claim Screen'deki "Tamam" butonu
@@ -65,6 +66,7 @@ public class GameManager : MonoBehaviour
         // Tüm listenerları temizle ve yeniden bağla (Garanti olsun)
         if (btnContinue != null) { btnContinue.onClick.RemoveAllListeners(); btnContinue.onClick.AddListener(Button_Continue); }
         if (btnExit != null) { btnExit.onClick.RemoveAllListeners(); btnExit.onClick.AddListener(Button_ExitAndClaim); }
+        if (btnExitMain != null) { btnExitMain.onClick.RemoveAllListeners(); btnExitMain.onClick.AddListener(Button_ExitMainGame); }
         if (btnRevive != null) { btnRevive.onClick.RemoveAllListeners(); btnRevive.onClick.AddListener(Button_Revive); }
         if (btnGiveUp != null) { btnGiveUp.onClick.RemoveAllListeners(); btnGiveUp.onClick.AddListener(Button_GiveUp); }
         
@@ -90,12 +92,31 @@ public class GameManager : MonoBehaviour
         if(winScreen != null) winScreen.SetActive(false);
         if(loseScreen != null) loseScreen.SetActive(false);
         if(claimScreen != null) claimScreen.gameObject.SetActive(false);
+        
+        // Re-enable and show exit button when new game starts
+        if (btnExitMain != null)
+        {
+            btnExitMain.interactable = true;
+            btnExitMain.gameObject.SetActive(true);
+        }
+        
+        // Update exit button state (check if wheel is spinning)
+        UpdateExitButtonState();
     }
 
     public void OnSpinEnded(LevelManager.RuntimeSlice result)
     {
+        // Re-enable exit button when spin ends
+        UpdateExitButtonState();
+        
         if (result.isBomb) HandleLose();
         else HandleWin(result);
+    }
+
+    // Called when wheel starts spinning
+    public void OnSpinStarted()
+    {
+        UpdateExitButtonState();
     }
 
     private void HandleWin(LevelManager.RuntimeSlice reward)
@@ -134,6 +155,8 @@ public class GameManager : MonoBehaviour
         if(winScreen != null)
         {
             winScreen.SetActive(true);
+            // Hide exit button when win screen is shown
+            HideExitButton();
             // Pop in animation
             winScreen.transform.localScale = Vector3.zero;
             winScreen.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack);
@@ -146,7 +169,11 @@ public class GameManager : MonoBehaviour
         {
             // Pop out animation
             winScreen.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack)
-                .OnComplete(() => winScreen.SetActive(false));
+                .OnComplete(() => {
+                    winScreen.SetActive(false);
+                    // Show exit button when win screen is hidden (always show, but keep disabled state)
+                    //ShowExitButton();
+                });
         }
     }
 
@@ -155,6 +182,8 @@ public class GameManager : MonoBehaviour
     public void Button_Continue()
     {
         HideWinScreen();
+        ShowExitButton();
+        // Exit button will be shown in HideWinScreen callback
         AnimateZoneChange();
     }
 
@@ -162,12 +191,43 @@ public class GameManager : MonoBehaviour
     {
         currentZone++;
         UpdateZoneUI();
-        if(wheelController != null) wheelController.SetupNewLevel(currentZone);
+        if(wheelController != null) 
+        {
+            wheelController.SetupNewLevel(currentZone);
+            // Update exit button state after wheel setup (wheel is ready, not spinning)
+            UpdateExitButtonState();
+        }
     }
 
     public void Button_ExitAndClaim()
     {
         HideWinScreen();
+        ShowClaimScreen();
+    }
+
+    // Exit button from main game screen (always visible)
+    public void Button_ExitMainGame()
+    {
+        // Only allow exit if wheel is not spinning
+        if (wheelController != null && wheelController.IsSpinning)
+        {
+            return;
+        }
+
+        // Disable exit button after being pressed
+        if (btnExitMain != null)
+        {
+            btnExitMain.interactable = false;
+        }
+
+        // Show claim screen with all collected rewards
+        ShowClaimScreen();
+    }
+
+    private void ShowClaimScreen()
+    {
+        // Hide exit button when claim screen is shown
+        HideExitButton();
         
         // Eğer Claim Screen varsa onu aç, yoksa direkt resetle
         if(claimScreen != null) 
@@ -190,7 +250,7 @@ public class GameManager : MonoBehaviour
         int totalCash = 0;
         foreach (var reward in rewards)
         {
-            if (reward.item != null && reward.item.type == RewardType.Currency)
+            if (reward.item != null && reward.item.id == "currency_cash")
             {
                 totalCash += reward.amount;
             }
@@ -230,6 +290,9 @@ public class GameManager : MonoBehaviour
             loseScreen.SetActive(true);
             if(failInfoText != null) failInfoText.text = "Cash: " + totalMoney + "$";
             
+            // Hide exit button when lose screen is shown
+            HideExitButton();
+            
             // Update revive button text with cost
             UpdateReviveButton();
             
@@ -260,7 +323,10 @@ public class GameManager : MonoBehaviour
         {
             // Pop out animation
             loseScreen.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack)
-                .OnComplete(() => loseScreen.SetActive(false));
+                .OnComplete(() => {
+                    loseScreen.SetActive(false);
+                    // Show exit button when lose screen is hidden (always show, but keep disabled state)
+                });
         }
     }
 
@@ -272,6 +338,8 @@ public class GameManager : MonoBehaviour
             totalMoney -= reviveCost;
             UpdateCashUI();
             HideLoseScreen();
+            ShowExitButton();
+            // Exit button will be shown in HideLoseScreen callback
             AnimateZoneChange();
         } 
     }
@@ -308,6 +376,52 @@ public class GameManager : MonoBehaviour
         if (cashText != null)
         {
             cashText.text = totalMoney.ToString("N0") + "$"; // Format with commas and $ sign
+        }
+    }
+
+    private void UpdateExitButtonState()
+    {
+        if (btnExitMain != null && wheelController != null)
+        {
+            // Disable exit button while wheel is spinning (only if button is enabled)
+            if (btnExitMain.interactable)
+            {
+                btnExitMain.interactable = !wheelController.IsSpinning;
+            }
+        }
+    }
+
+    private void HideExitButton()
+    {
+        if (btnExitMain != null)
+        {
+            btnExitMain.gameObject.SetActive(false);
+        }
+    }
+
+    private void ShowExitButton()
+    {
+        if (btnExitMain != null)
+        {
+            // Always show the exit button (make it visible)
+            btnExitMain.gameObject.SetActive(true);
+            btnExitMain.interactable = true;
+            // Update state based on wheel spinning (only if button is enabled)
+            UpdateExitButtonState();
+        }
+    }
+
+    private void ShowExitButtonIfEnabled()
+    {
+        if (btnExitMain != null)
+        {
+            // Only show if button is enabled (not disabled after being clicked)
+            if (btnExitMain.interactable)
+            {
+                btnExitMain.gameObject.SetActive(true);
+                // Update state based on wheel spinning
+                UpdateExitButtonState();
+            }
         }
     }
 
@@ -471,5 +585,56 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+
+        // 7. Auto-find main game exit button (not in win screen)
+        if (btnExitMain == null)
+        {
+            // Search for exit button that's NOT in win screen
+            var allButtons = FindObjectsOfType<Button>(true);
+            foreach(var btn in allButtons)
+            {
+                // Check if button name contains "exit_main" or is specifically named for main game
+                if(btn.name.Contains("exit_main") || btn.name == "ui_btn_exit_main")
+                {
+                    btnExitMain = btn;
+                    break;
+                }
+            }
+            
+            // If still not found, look for exit button that's not in win/lose/claim screens
+            if (btnExitMain == null)
+            {
+                foreach(var btn in allButtons)
+                {
+                    if(btn.name.Contains("exit"))
+                    {
+                        // Check if button is NOT in any screen
+                        bool isInScreen = false;
+                        if(winScreen != null && IsChildOf(btn.transform, winScreen.transform)) isInScreen = true;
+                        if(loseScreen != null && IsChildOf(btn.transform, loseScreen.transform)) isInScreen = true;
+                        if(claimScreen != null && IsChildOf(btn.transform, claimScreen.transform)) isInScreen = true;
+                        
+                        if(!isInScreen)
+                        {
+                            btnExitMain = btn;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Helper method to check if transform is child of parent
+    private bool IsChildOf(Transform child, Transform parent)
+    {
+        if (parent == null || child == null) return false;
+        Transform current = child;
+        while (current != null)
+        {
+            if (current == parent) return true;
+            current = current.parent;
+        }
+        return false;
     }
 }

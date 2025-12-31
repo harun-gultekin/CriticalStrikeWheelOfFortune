@@ -19,6 +19,9 @@ public class WheelController : MonoBehaviour
     private bool isSpinning = false;
     private LevelManager levelManager;
 
+    // Public property to check if wheel is spinning
+    public bool IsSpinning => isSpinning;
+
     private void Awake()
     {
         levelManager = FindObjectOfType<LevelManager>();
@@ -120,6 +123,12 @@ public class WheelController : MonoBehaviour
         if (isSpinning) return;
         isSpinning = true;
         spinButton.interactable = false;
+        
+        // Notify GameManager that spin started
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnSpinStarted();
+        }
 
         // 1. Rastgele bir dilim seç
         int targetIndex = Random.Range(0, slices.Length);
