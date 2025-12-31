@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public int currentZone = 1;
     public int totalMoney = 5000;
     private List<LevelManager.RuntimeSlice> collectedRewards = new List<LevelManager.RuntimeSlice>();
+    private List<LevelManager.RuntimeSlice> rewardsToClaim = new List<LevelManager.RuntimeSlice>(); // Rewards waiting to be claimed
 
     [Header("UI Panels")]
     [SerializeField] private GameObject winScreen;
@@ -35,6 +36,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI currentZoneText;
     [SerializeField] private TextMeshProUGUI nextSilverZoneText;
     [SerializeField] private TextMeshProUGUI nextGoldenZoneText;
+    
+    [Header("Cash UI")]
+    [SerializeField] private TextMeshProUGUI cashText; // Current cash amount display
 
     // OTOMATİK BULUNACAK BUTONLAR
     [Header("Auto-Referenced Buttons (Read Only)")]
@@ -52,6 +56,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         SetupButtonListeners();
+        UpdateCashUI(); // Initialize cash display
         RestartGame();
     }
 
@@ -78,6 +83,7 @@ public class GameManager : MonoBehaviour
         if(inventoryUI != null) inventoryUI.ClearInventory();
         
         UpdateZoneUI();
+        UpdateCashUI();
         if(wheelController != null) wheelController.SetupNewLevel(currentZone);
         
         // Tüm ekranları kapat
@@ -166,16 +172,46 @@ public class GameManager : MonoBehaviour
         // Eğer Claim Screen varsa onu aç, yoksa direkt resetle
         if(claimScreen != null) 
         {
+            // Store rewards that will be claimed
+            rewardsToClaim = new List<LevelManager.RuntimeSlice>(collectedRewards);
             claimScreen.ShowClaimSequence(collectedRewards);
         }
         else 
         {
+            // If no claim screen, directly add cash from rewards
+            AddCashFromRewards(collectedRewards);
             RestartGame();
+        }
+    }
+
+    // Calculate and add cash from currency rewards
+    private void AddCashFromRewards(List<LevelManager.RuntimeSlice> rewards)
+    {
+        int totalCash = 0;
+        foreach (var reward in rewards)
+        {
+            if (reward.item != null && reward.item.type == RewardType.Currency)
+            {
+                totalCash += reward.amount;
+            }
+        }
+        
+        if (totalCash > 0)
+        {
+            totalMoney += totalCash;
+            Debug.Log($"Added {totalCash} cash from rewards. Total: {totalMoney}");
         }
     }
 
     public void Button_FinishGame() // Claim Screen'deki "Tamam" butonu
     {
+        // Add cash from claimed rewards before restarting
+        if (rewardsToClaim != null && rewardsToClaim.Count > 0)
+        {
+            AddCashFromRewards(rewardsToClaim);
+            rewardsToClaim.Clear();
+        }
+        
         // Bu buton claimScreen'i kapatıp oyunu baştan başlatır
         RestartGame();
     }
@@ -192,12 +228,30 @@ public class GameManager : MonoBehaviour
         if(loseScreen != null) 
         { 
             loseScreen.SetActive(true);
-            if(failInfoText != null) failInfoText.text = "Paran: " + totalMoney + "$";
+            if(failInfoText != null) failInfoText.text = "Cash: " + totalMoney + "$";
+            
+            // Update revive button text with cost
+            UpdateReviveButton();
             
             // Pop in animation
             loseScreen.transform.localScale = Vector3.zero;
             loseScreen.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack);
         }
+    }
+
+    private void UpdateReviveButton()
+    {
+        if (btnRevive == null) return;
+        
+        int reviveCost = 100;
+        var buttonText = btnRevive.GetComponentInChildren<TextMeshProUGUI>();
+        if (buttonText != null)
+        {
+            buttonText.text = $"Revive ({reviveCost}$)";
+        }
+        
+        // Enable/disable button based on available cash
+        btnRevive.interactable = totalMoney >= reviveCost;
     }
 
     private void HideLoseScreen()
@@ -215,7 +269,8 @@ public class GameManager : MonoBehaviour
         int reviveCost = 100;
         if(totalMoney >= reviveCost) 
         { 
-            totalMoney -= reviveCost; 
+            totalMoney -= reviveCost;
+            UpdateCashUI();
             HideLoseScreen();
             AnimateZoneChange();
         } 
@@ -245,6 +300,14 @@ public class GameManager : MonoBehaviour
         {
             int nextGolden = GetNextGoldenZone(currentZone);
             nextGoldenZoneText.text = $"{nextGolden}";
+        }
+    }
+
+    private void UpdateCashUI()
+    {
+        if (cashText != null)
+        {
+            cashText.text = totalMoney.ToString("N0") + "$"; // Format with commas and $ sign
         }
     }
 
@@ -391,6 +454,20 @@ public class GameManager : MonoBehaviour
                 if (configField != null)
                 {
                     gameConfig = configField.GetValue(levelManager) as GameConfigSO;
+                }
+            }
+        }
+
+        // 6. Auto-find cash text
+        if (cashText == null)
+        {
+            var texts = FindObjectsOfType<TextMeshProUGUI>(true);
+            foreach(var txt in texts)
+            {
+                if(txt.name.Contains("cash") || txt.name.Contains("money") || txt.name == "ui_text_cash" || txt.name == "ui_text_money")
+                {
+                    cashText = txt;
+                    break;
                 }
             }
         }
