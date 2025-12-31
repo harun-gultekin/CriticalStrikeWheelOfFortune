@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class GameManager : MonoBehaviour
 {
@@ -28,7 +29,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private WheelController wheelController;
     [SerializeField] private LevelManager levelManager;
     [SerializeField] private InventoryUI inventoryUI;
-    [SerializeField] private TextMeshProUGUI zoneText;
+    [SerializeField] private GameConfigSO gameConfig;
+    
+    [Header("Zone Info UI")]
+    [SerializeField] private TextMeshProUGUI currentZoneText;
+    [SerializeField] private TextMeshProUGUI nextSilverZoneText;
+    [SerializeField] private TextMeshProUGUI nextGoldenZoneText;
 
     // OTOMATİK BULUNACAK BUTONLAR
     [Header("Auto-Referenced Buttons (Read Only)")]
@@ -114,14 +120,40 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("Win Screen Card Container veya Prefab eksik!");
         }
 
-        if(winScreen != null) winScreen.SetActive(true); 
+        ShowWinScreen();
+    }
+
+    private void ShowWinScreen()
+    {
+        if(winScreen != null)
+        {
+            winScreen.SetActive(true);
+            // Pop in animation
+            winScreen.transform.localScale = Vector3.zero;
+            winScreen.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack);
+        }
+    }
+
+    private void HideWinScreen()
+    {
+        if(winScreen != null)
+        {
+            // Pop out animation
+            winScreen.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack)
+                .OnComplete(() => winScreen.SetActive(false));
+        }
     }
 
     // --- BUTON AKSİYONLARI ---
 
     public void Button_Continue()
     {
-        if(winScreen != null) winScreen.SetActive(false);
+        HideWinScreen();
+        AnimateZoneChange();
+    }
+
+    private void AdvanceZone()
+    {
         currentZone++;
         UpdateZoneUI();
         if(wheelController != null) wheelController.SetupNewLevel(currentZone);
@@ -129,7 +161,7 @@ public class GameManager : MonoBehaviour
 
     public void Button_ExitAndClaim()
     {
-        if(winScreen != null) winScreen.SetActive(false);
+        HideWinScreen();
         
         // Eğer Claim Screen varsa onu aç, yoksa direkt resetle
         if(claimScreen != null) 
@@ -152,11 +184,30 @@ public class GameManager : MonoBehaviour
 
     private void HandleLose() 
     { 
+        ShowLoseScreen();
+    }
+
+    private void ShowLoseScreen()
+    {
         if(loseScreen != null) 
         { 
-            loseScreen.SetActive(true); 
-            if(failInfoText != null) failInfoText.text = "Paran: " + totalMoney + "$"; 
-        } 
+            loseScreen.SetActive(true);
+            if(failInfoText != null) failInfoText.text = "Paran: " + totalMoney + "$";
+            
+            // Pop in animation
+            loseScreen.transform.localScale = Vector3.zero;
+            loseScreen.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack);
+        }
+    }
+
+    private void HideLoseScreen()
+    {
+        if(loseScreen != null)
+        {
+            // Pop out animation
+            loseScreen.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack)
+                .OnComplete(() => loseScreen.SetActive(false));
+        }
     }
 
     public void Button_Revive() 
@@ -165,8 +216,8 @@ public class GameManager : MonoBehaviour
         if(totalMoney >= reviveCost) 
         { 
             totalMoney -= reviveCost; 
-            if(loseScreen != null) loseScreen.SetActive(false); 
-            Button_Continue(); 
+            HideLoseScreen();
+            AnimateZoneChange();
         } 
     }
 
@@ -177,14 +228,79 @@ public class GameManager : MonoBehaviour
 
     private void UpdateZoneUI() 
     { 
-        if(zoneText == null) return;
-        
-        string color = "white";
-        string prefix = "";
-        if (currentZone % 30 == 0) { color = "gold"; prefix = "SUPER "; }
-        else if (currentZone % 5 == 0) { color = "#C0C0C0"; prefix = "SAFE "; } 
-        
-        zoneText.text = $"<color={color}>{prefix}ZONE {currentZone}</color>";
+        // Update zone info texts
+        if(currentZoneText != null)
+        {
+            
+            currentZoneText.text = $"{currentZone}";
+        }
+
+        if(nextSilverZoneText != null && gameConfig != null)
+        {
+            int nextSilver = GetNextSilverZone(currentZone);
+            nextSilverZoneText.text = $"{nextSilver}";
+        }
+
+        if(nextGoldenZoneText != null && gameConfig != null)
+        {
+            int nextGolden = GetNextGoldenZone(currentZone);
+            nextGoldenZoneText.text = $"{nextGolden}";
+        }
+    }
+
+    private int GetNextSilverZone(int currentZone)
+    {
+        if (gameConfig == null) return 5;
+        int interval = gameConfig.safeZoneInterval;
+        int next = ((currentZone / interval) + 1) * interval;
+        return next;
+    }
+
+    private int GetNextGoldenZone(int currentZone)
+    {
+        if (gameConfig == null) return 30;
+        int interval = gameConfig.superZoneInterval;
+        int next = ((currentZone / interval) + 1) * interval;
+        return next;
+    }
+
+    private void AnimateZoneChange()
+    {
+        // Animate zone info texts with rotation
+        Sequence seq = DOTween.Sequence();
+
+        // Rotate out current zone text
+        if(currentZoneText != null)
+        {
+            seq.Join(currentZoneText.transform.DORotate(new Vector3(0, 0, 90), 0.2f).SetEase(Ease.InQuad));
+        }
+        if(nextSilverZoneText != null)
+        {
+            seq.Join(nextSilverZoneText.transform.DORotate(new Vector3(0, 0, 90), 0.2f).SetEase(Ease.InQuad));
+        }
+        if(nextGoldenZoneText != null)
+        {
+            seq.Join(nextGoldenZoneText.transform.DORotate(new Vector3(0, 0, 90), 0.2f).SetEase(Ease.InQuad));
+        }
+
+        // Update values in the middle (after rotation out)
+        seq.AppendCallback(() => {
+            AdvanceZone();
+        });
+
+        // Rotate back in
+        if(currentZoneText != null)
+        {
+            seq.Append(currentZoneText.transform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutBack));
+        }
+        if(nextSilverZoneText != null)
+        {
+            seq.Join(nextSilverZoneText.transform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutBack));
+        }
+        if(nextGoldenZoneText != null)
+        {
+            seq.Join(nextGoldenZoneText.transform.DORotate(Vector3.zero, 0.3f).SetEase(Ease.OutBack));
+        }
     }
 
     // --- OTOMATİK BAĞLAMA (ONVALIDATE) ---
@@ -194,8 +310,8 @@ public class GameManager : MonoBehaviour
         if (winScreen != null) {
             var buttons = winScreen.GetComponentsInChildren<Button>(true);
             foreach(var b in buttons) {
-                if(b.name == "ui_btn_continue") btnContinue = b;
-                if(b.name == "ui_btn_exit") btnExit = b;
+                if(b.name == "ui_btn_continue" || b.name.Contains("continue")) btnContinue = b;
+                if(b.name == "ui_btn_exit" || b.name.Contains("exit")) btnExit = b;
             }
         }
 
@@ -203,26 +319,79 @@ public class GameManager : MonoBehaviour
         if (loseScreen != null) {
             var buttons = loseScreen.GetComponentsInChildren<Button>(true);
             foreach(var b in buttons) {
-                if(b.name == "ui_btn_revive") btnRevive = b;
-                if(b.name == "ui_btn_giveup") btnGiveUp = b;
+                if(b.name == "ui_btn_revive" || b.name.Contains("revive")) btnRevive = b;
+                if(b.name == "ui_btn_giveup" || b.name.Contains("giveup") || b.name.Contains("give_up")) btnGiveUp = b;
             }
         }
         
-        // 3. Claim Screen Butonu (YENİ EKLENDİ)
+        // 3. Claim Screen Butonu
         if (claimScreen != null) {
-            // Claim screen scriptinin olduğu objenin altında buton arıyoruz
             var btn = claimScreen.transform.Find("ui_btn_mainmenu")?.GetComponent<Button>(); 
-            // Veya isme göre derin arama:
             if(btn == null) {
                 var buttons = claimScreen.GetComponentsInChildren<Button>(true);
                 foreach(var b in buttons) {
-                    if(b.name == "ui_btn_mainmenu") {
+                    if(b.name == "ui_btn_mainmenu" || b.name.Contains("mainmenu") || b.name.Contains("main_menu")) {
                         btnMainMenu = b;
                         break;
                     }
                 }
             } else {
                 btnMainMenu = btn;
+            }
+        }
+
+        // 4. Auto-find zone info texts
+        if (currentZoneText == null)
+        {
+            var texts = FindObjectsOfType<TextMeshProUGUI>(true);
+            foreach(var txt in texts)
+            {
+                if(txt.name.Contains("current_zone") || txt.name.Contains("currentZone") || txt.name == "ui_text_current_zone")
+                {
+                    currentZoneText = txt;
+                    break;
+                }
+            }
+        }
+
+        if (nextSilverZoneText == null)
+        {
+            var texts = FindObjectsOfType<TextMeshProUGUI>(true);
+            foreach(var txt in texts)
+            {
+                if(txt.name.Contains("next_silver") || txt.name.Contains("nextSilver") || txt.name == "ui_text_next_silver")
+                {
+                    nextSilverZoneText = txt;
+                    break;
+                }
+            }
+        }
+
+        if (nextGoldenZoneText == null)
+        {
+            var texts = FindObjectsOfType<TextMeshProUGUI>(true);
+            foreach(var txt in texts)
+            {
+                if(txt.name.Contains("next_golden") || txt.name.Contains("nextGolden") || txt.name == "ui_text_next_golden")
+                {
+                    nextGoldenZoneText = txt;
+                    break;
+                }
+            }
+        }
+
+        // 5. Auto-find game config
+        if (gameConfig == null)
+        {
+            gameConfig = Resources.FindObjectsOfTypeAll<GameConfigSO>()[0];
+            if (gameConfig == null && levelManager != null)
+            {
+                var configField = typeof(LevelManager).GetField("gameConfig", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (configField != null)
+                {
+                    gameConfig = configField.GetValue(levelManager) as GameConfigSO;
+                }
             }
         }
     }

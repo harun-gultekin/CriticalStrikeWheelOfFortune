@@ -13,6 +13,52 @@ public class RewardClaimScreen : MonoBehaviour
     [SerializeField] private GameObject mainMenuButton; 
     [SerializeField] private ScrollRect scrollRect;   // Otomatik kaydırma için
 
+    // Auto-Referenced in OnValidate
+    private void OnValidate()
+    {
+        // Auto-find main menu button
+        if (mainMenuButton == null)
+        {
+            var btn = transform.Find("ui_btn_mainmenu")?.GetComponent<Button>();
+            if (btn != null)
+            {
+                mainMenuButton = btn.gameObject;
+            }
+            else
+            {
+                var buttons = GetComponentsInChildren<Button>(true);
+                foreach (var b in buttons)
+                {
+                    if (b.name == "ui_btn_mainmenu" || b.name.Contains("mainmenu") || b.name.Contains("main_menu"))
+                    {
+                        mainMenuButton = b.gameObject;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Auto-find content parent
+        if (contentParent == null)
+        {
+            contentParent = transform.Find("ScrollView/Viewport/Content")?.transform;
+            if (contentParent == null)
+            {
+                var scrollView = GetComponentInChildren<ScrollRect>(true);
+                if (scrollView != null && scrollView.content != null)
+                {
+                    contentParent = scrollView.content;
+                }
+            }
+        }
+
+        // Auto-find scroll rect
+        if (scrollRect == null)
+        {
+            scrollRect = GetComponentInChildren<ScrollRect>(true);
+        }
+    }
+
     public void ShowClaimSequence(List<LevelManager.RuntimeSlice> rawRewards)
     {
         gameObject.SetActive(true);

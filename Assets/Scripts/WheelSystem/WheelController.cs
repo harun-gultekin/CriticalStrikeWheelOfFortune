@@ -9,17 +9,19 @@ public class WheelController : MonoBehaviour
     [SerializeField] private Transform wheelBody;   
     [SerializeField] private Button spinButton;     
     [SerializeField] private WheelSliceUI[] slices; 
+    [SerializeField] private Image wheelImage;          // Wheel base image (for tier changes)
+    [SerializeField] private Image wheelIndicatorImage;  // Wheel indicator/pointer image (for tier changes)
 
     [Header("Settings")]
     [SerializeField] private float spinDuration = 4f; 
     [SerializeField] private int spinRounds = 5;
 
     private bool isSpinning = false;
-    private LevelManager levelManager; 
+    private LevelManager levelManager;
 
     private void Awake()
     {
-        levelManager = FindObjectOfType<LevelManager>(); 
+        levelManager = FindObjectOfType<LevelManager>();
         
         if(spinButton != null)
         {
@@ -44,10 +46,41 @@ public class WheelController : MonoBehaviour
         // 1. Yeni veriyi al
         List<LevelManager.RuntimeSlice> levelData = levelManager.GenerateLevel(zoneIndex);
 
-        // 2. Flip Animasyonunu Başlat
+        // 2. Update wheel image based on tier
+        UpdateWheelImage(zoneIndex);
+
+        // 3. Flip Animasyonunu Başlat
         AnimateSlicesChange(levelData);
         
         spinButton.interactable = true;
+    }
+
+    private void UpdateWheelImage(int zoneIndex)
+    {
+        if (levelManager == null) return;
+
+        // Get tier from LevelManager's gameConfig
+        var configField = typeof(LevelManager).GetField("gameConfig", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (configField == null) return;
+
+        GameConfigSO gameConfig = configField.GetValue(levelManager) as GameConfigSO;
+        if (gameConfig == null) return;
+
+        WheelTierSO tier = gameConfig.GetTierForZone(zoneIndex);
+        if (tier == null) return;
+
+        // Update base wheel image
+        if (wheelImage != null && tier.wheelSprite != null)
+        {
+            wheelImage.sprite = tier.wheelSprite;
+        }
+
+        // Update indicator/pointer image
+        if (wheelIndicatorImage != null && tier.wheelIndicatorSprite != null)
+        {
+            wheelIndicatorImage.sprite = tier.wheelIndicatorSprite;
+        }
     }
 
     private void AnimateSlicesChange(List<LevelManager.RuntimeSlice> newData)
@@ -130,5 +163,39 @@ public class WheelController : MonoBehaviour
         if (spinButton == null) spinButton = transform.Find("ui_btn_spin")?.GetComponent<Button>();
         if (wheelBody == null) wheelBody = transform.Find("ui_image_wheel_value") ?? transform.Find("ui_image_wheel_body");
         if (slices == null || slices.Length == 0 && wheelBody != null) slices = wheelBody.GetComponentsInChildren<WheelSliceUI>();
+        
+        // Auto-find wheel base image component
+        if (wheelImage == null && wheelBody != null)
+        {
+            wheelImage = wheelBody.GetComponent<Image>();
+            if (wheelImage == null)
+            {
+                wheelImage = wheelBody.GetComponentInChildren<Image>();
+            }
+        }
+
+        // Auto-find wheel indicator image component
+        if (wheelIndicatorImage == null)
+        {
+            // Try to find by name
+            var indicatorObj = transform.Find("ui_image_wheel_indicator_value");
+            if (indicatorObj != null)
+            {
+                wheelIndicatorImage = indicatorObj.GetComponent<Image>();
+            }
+            else
+            {
+                // Search in all children
+                var images = GetComponentsInChildren<Image>(true);
+                foreach (var img in images)
+                {
+                    if (img.name.Contains("indicator") || img.name.Contains("pointer") || img.name.Contains("arrow"))
+                    {
+                        wheelIndicatorImage = img;
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

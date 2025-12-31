@@ -15,6 +15,8 @@ MonoBehaviour:
   tierName: Bronze
   hasBomb: 1
   bombItem: {fileID: 11400000, guid: 633c6f09d5a3347559989ce1b2f5f80b, type: 2}
+  wheelSprite: {fileID: 21300000, guid: 17281fd5bd8aa4907b727b6d0e1acf5c, type: 3}
+  wheelIndicatorSprite: {fileID: 21300000, guid: c9a9decf15d6443e88826f3e48ccc91e, type: 3}
   potentialRewards:
   - item: {fileID: 11400000, guid: 72abf11cd5b024e39a37d9eb178db9a5, type: 2}
     baseAmount: 100
@@ -22,3 +24,42 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: 42283e636a8024e14a13701929803cdb, type: 2}
     baseAmount: 1
     weight: 80
+  - item: {fileID: 11400000, guid: dec5e8f211bca4b2e8be17b3e0871e26, type: 2}
+    baseAmount: 1
+    weight: 5
+  - item: {fileID: 11400000, guid: 9506bef8c1ec841f8924ef618f630c21, type: 2}
+    baseAmount: 1
+    weight: 5
+  - item: {fileID: 11400000, guid: 90927ac7035ec4eba8d3b056138c437d, type: 2}
+    baseAmount: 1
+    weight: 5
+  - item: {fileID: 11400000, guid: 38130c4a61d8641bf953f501d28beabd, type: 2}
+    baseAmount: 1
+    weight: 5
+  - item: {fileID: 11400000, guid: e71ea8ea8bc724642b5310aace7d2ea7, type: 2}
+    baseAmount: 1
+    weight: 5
+  - item: {fileID: 11400000, guid: beade100736834559bd7b445174f2f3c, type: 2}
+    baseAmount: 5
+    weight: 5
+  - item: {fileID: 11400000, guid: 2ffde3da42e1f4519b2bc65161121219, type: 2}
+    baseAmount: 5
+    weight: 5
+  - item: {fileID: 11400000, guid: 871de9544904b46f498481863c322578, type: 2}
+    baseAmount: 5
+    weight: 5
+  - item: {fileID: 11400000, guid: cf642b544d21a40bda5a84ec017d7831, type: 2}
+    baseAmount: 5
+    weight: 5
+  - item: {fileID: 11400000, guid: 4dd281729961e4651a72b3834269c462, type: 2}
+    baseAmount: 5
+    weight: 5
+  - item: {fileID: 11400000, guid: 1db64063a99a34d409fe5590ee487e65, type: 2}
+    baseAmount: 5
+    weight: 5
+  - item: {fileID: 11400000, guid: 32e6b486eadf443bb983e9360acc6ff2, type: 2}
+    baseAmount: 5
+    weight: 5
+  - item: {fileID: 11400000, guid: 980cd5a0862b8435b86d3fb5f06fc6ac, type: 2}
+    baseAmount: 5
+    weight: 5

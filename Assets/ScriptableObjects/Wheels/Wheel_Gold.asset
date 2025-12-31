@@ -15,10 +15,42 @@ MonoBehaviour:
   tierName: Gold
   hasBomb: 0
   bombItem: {fileID: 11400000, guid: 633c6f09d5a3347559989ce1b2f5f80b, type: 2}
+  wheelSprite: {fileID: 21300000, guid: 58f9ffd27a68240ceb61c11beee58f05, type: 3}
+  wheelIndicatorSprite: {fileID: 21300000, guid: 530e0171c6ea74bc4bd9d20c0f1f618b, type: 3}
   potentialRewards:
   - item: {fileID: 11400000, guid: 72abf11cd5b024e39a37d9eb178db9a5, type: 2}
-    baseAmount: 5000
+    baseAmount: 1000
     weight: 100
   - item: {fileID: 11400000, guid: 42283e636a8024e14a13701929803cdb, type: 2}
     baseAmount: 100
     weight: 80
+  - item: {fileID: 11400000, guid: d50f4b82822ab4452a28ef9e402f34e9, type: 2}
+    baseAmount: 1
+    weight: 10
+  - item: {fileID: 11400000, guid: ab2e704310bc24d79a3b5327be878550, type: 2}
+    baseAmount: 1
+    weight: 10
+  - item: {fileID: 11400000, guid: 468d969302d4648b2ac3650ce7250c67, type: 2}
+    baseAmount: 1
+    weight: 10
+  - item: {fileID: 11400000, guid: cb956f26989fc4c00a0ff2fbffdf3b73, type: 2}
+    baseAmount: 1
+    weight: 5
+  - item: {fileID: 11400000, guid: bb2eedb83268b4f02bd7255f3eeca5e4, type: 2}
+    baseAmount: 1
+    weight: 3
+  - item: {fileID: 11400000, guid: d2782f3184b334d82899ff7a3f81ffe7, type: 2}
+    baseAmount: 1
+    weight: 5
+  - item: {fileID: 11400000, guid: dc21b8f8a035847b2a2f511281ddbb13, type: 2}
+    baseAmount: 1
+    weight: 5
+  - item: {fileID: 11400000, guid: 7e1ea4d2a65b1417ab1a334229e3615b, type: 2}
+    baseAmount: 1
+    weight: 3
+  - item: {fileID: 11400000, guid: a848d892e00b14375b10debbad5bf238, type: 2}
+    baseAmount: 1
+    weight: 3
+  - item: {fileID: 11400000, guid: 3af681ed2f4fb48d18bed8e0ec6fdfa1, type: 2}
+    baseAmount: 1
+    weight: 3
