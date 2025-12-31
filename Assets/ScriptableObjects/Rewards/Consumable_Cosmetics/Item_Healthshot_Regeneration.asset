@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d93ddd5341434ccba490411f2c15806, type: 3}
+  m_Name: Item_Healthshot_Regeneration
+  m_EditorClassIdentifier: 
+  id: consumable_health_regen
+  displayName: Healthsot Regeneration
+  icon: {fileID: 21300000, guid: 4abef202f6ab54e11aa555ae77895d3e, type: 3}
+  frameIcon: {fileID: 0}
+  type: 4
+  rarity: 0

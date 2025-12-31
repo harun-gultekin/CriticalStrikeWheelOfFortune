@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56d820e02c0fb43c6a989cc7468ca3a2, type: 3}
+  m_Name: Wheel_Silver
+  m_EditorClassIdentifier: 
+  tierName: Silver
+  hasBomb: 0
+  bombItem: {fileID: 11400000, guid: 633c6f09d5a3347559989ce1b2f5f80b, type: 2}
+  potentialRewards:
+  - item: {fileID: 11400000, guid: 72abf11cd5b024e39a37d9eb178db9a5, type: 2}
+    baseAmount: 10000
+    weight: 100
+  - item: {fileID: 11400000, guid: 42283e636a8024e14a13701929803cdb, type: 2}
+    baseAmount: 10
+    weight: 80

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a02399a0aeceb4157a3c0b52df0060dd, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  bronzeTier: {fileID: 11400000, guid: aa7c8f486b717472f997c3f710abbf94, type: 2}
+  silverTier: {fileID: 11400000, guid: d83abdcb26d164e6680a78751ab07711, type: 2}
+  goldTier: {fileID: 11400000, guid: 528ee6cbab9a546a19875de2fb01d662, type: 2}
+  safeZoneInterval: 5
+  superZoneInterval: 30
+  amountMultiplierPerZone: 0.1

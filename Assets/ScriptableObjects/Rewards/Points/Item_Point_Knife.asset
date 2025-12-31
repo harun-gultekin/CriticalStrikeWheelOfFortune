@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d93ddd5341434ccba490411f2c15806, type: 3}
+  m_Name: Item_Point_Knife
+  m_EditorClassIdentifier: 
+  id: point_knife
+  displayName: Knife Points
+  icon: {fileID: 21300000, guid: 4efa2c4bebc454025973ec4e90aaa573, type: 3}
+  frameIcon: {fileID: 0}
+  type: 1
+  rarity: 0
